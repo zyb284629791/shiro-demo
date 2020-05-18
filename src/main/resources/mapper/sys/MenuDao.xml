@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="top.sf.shiro.sys.dao.MenuDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="top.sf.shiro.sys.entity.MenuEntity" id="menuMap">
+        <result property="id" column="id"/>
+        <result property="createUser" column="create_user"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateUser" column="update_user"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleteFlag" column="delete_flag"/>
+        <result property="menuName" column="menu_name"/>
+        <result property="menuType" column="menu_type"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="url" column="url"/>
+        <result property="permissionFlag" column="permission_flag"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="icon" column="icon"/>
+    </resultMap>
+
+
+</mapper>
