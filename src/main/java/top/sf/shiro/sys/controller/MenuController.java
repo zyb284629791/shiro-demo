@@ -3,12 +3,13 @@ package top.sf.shiro.sys.controller;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import top.sf.shiro.common.utils.PageUtils;
-import top.sf.shiro.common.utils.R;
 import top.sf.shiro.sys.entity.MenuEntity;
 import top.sf.shiro.sys.service.MenuService;
+import top.sf.shiro.sys.vo.MenuVO;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -28,11 +29,12 @@ public class MenuController {
      * 列表
      */
     @GetMapping("/list")
-//    @RequiresPermissions("sys:menu:list")
-    public R list(@RequestParam Map<String, Object> params) {
-        PageUtils page = menuService.queryPage(params);
-
-        return R.ok().put("page", page);
+    @RequiresPermissions("sys:menu:list")
+    public List<MenuVO> list() {
+        List<MenuVO> menuVOS = menuService.listMenuVO();
+        Map<Long, MenuVO> menuVOMap = menuVOS.stream().collect(Collectors.toMap(MenuVO::getId, menuVO -> menuVO));
+        menuVOS.stream().forEach(menuVO -> menuVO.setParentName(menuVOMap.get(menuVO.getId()).getParentName()));
+        return menuVOS;
     }
 
 
@@ -40,43 +42,40 @@ public class MenuController {
      * 信息
      */
     @GetMapping("/info/{id}")
-//    @RequiresPermissions("sys:menu:info")
-    public R info(@PathVariable("id") Long id) {
+    @RequiresPermissions("sys:menu:info")
+    public MenuEntity info(@PathVariable("id") Long id) {
         MenuEntity menu = menuService.getById(id);
 
-        return R.ok().put("menu", menu);
+        return menu;
     }
 
     /**
      * 保存
      */
     @PostMapping("/save")
-//    @RequiresPermissions("sys:menu:save")
-    public R save(@RequestBody MenuEntity menu) {
+    @RequiresPermissions("sys:menu:save")
+    public void save(@RequestBody MenuEntity menu) {
         menuService.save(menu);
 
-        return R.ok();
     }
 
     /**
      * 修改
      */
     @PatchMapping("/update")
-//    @RequiresPermissions("sys:menu:update")
-    public R update(@RequestBody MenuEntity menu) {
+    @RequiresPermissions("sys:menu:update")
+    public void update(@RequestBody MenuEntity menu) {
         menuService.updateById(menu);
 
-        return R.ok();
     }
 
     /**
      * 删除
      */
     @DeleteMapping("/delete/{id}")
-//    @RequiresPermissions("sys:menu:delete")
-    public R delete(@PathVariable("id") Long id) {
+    @RequiresPermissions("sys:menu:delete")
+    public void delete(@PathVariable("id") Long id) {
         menuService.removeById(id);
-        return R.ok();
     }
 
 }

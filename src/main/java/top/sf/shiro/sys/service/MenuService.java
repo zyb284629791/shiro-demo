@@ -3,7 +3,9 @@ package top.sf.shiro.sys.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.sf.shiro.common.utils.PageUtils;
 import top.sf.shiro.sys.entity.MenuEntity;
+import top.sf.shiro.sys.vo.MenuVO;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,5 +18,7 @@ import java.util.Map;
 public interface MenuService extends IService<MenuEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    List<MenuVO> listMenuVO();
 }
 

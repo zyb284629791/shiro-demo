@@ -12,6 +12,7 @@
         <result property="updateTime" column="update_time"/>
         <result property="deleteFlag" column="delete_flag"/>
         <result property="roleName" column="role_name"/>
+        <result property="roleTypeId" column="role_type_id"/>
         <result property="roleDescription" column="role_description"/>
     </resultMap>
 

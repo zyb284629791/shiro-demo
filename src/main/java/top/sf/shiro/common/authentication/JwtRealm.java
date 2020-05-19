@@ -9,12 +9,11 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import top.sf.shiro.sys.entity.RoleEntity;
 import top.sf.shiro.sys.entity.UserEntity;
 import top.sf.shiro.sys.service.RoleService;
 import top.sf.shiro.sys.service.UserService;
-import top.sf.shiro.sys.vo.LoginUserVO;
 
 import java.util.Set;
 
@@ -24,7 +23,7 @@ import java.util.Set;
  * @Date: 2020/5/8.16:33
  * @Version：1.0
  */
-public class ShiroRealm extends AuthorizingRealm {
+public class JwtRealm extends AuthorizingRealm {
 
     @Autowired
     private UserService userService;
@@ -61,7 +60,7 @@ public class ShiroRealm extends AuthorizingRealm {
             }
             // 这里验证authenticationToken和simpleAuthenticationInfo的信息
             SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(username,
-                    user.getPassword(), getName());
+                    user.getPassword(), ByteSource.Util.bytes(user.getSalt()), getName());
             return simpleAuthenticationInfo;
         }
     }

@@ -3,6 +3,9 @@ package top.sf.shiro.sys.dao;
 import top.sf.shiro.sys.entity.MenuEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import top.sf.shiro.sys.vo.MenuVO;
+
+import java.util.List;
 
 /**
  * 系统菜单表
@@ -13,5 +16,6 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface MenuDao extends BaseMapper<MenuEntity> {
-	
+
+    List<MenuVO> listMenuVO();
 }

@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Mapper;
  * 
  * @author zhangyanbin
  * @email zhangyanbin@cmii.chinamobile.com
- * @date 2020-05-18 10:23:59
+ * @date 2020-05-19 13:38:34
  */
 @Mapper
 public interface RoleDao extends BaseMapper<RoleEntity> {

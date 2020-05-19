@@ -12,7 +12,7 @@ import lombok.Data;
  * 
  * @author zhangyanbin
  * @email zhangyanbin@cmii.chinamobile.com
- * @date 2020-05-18 10:23:58
+ * @date 2020-05-19 13:38:34
  */
 @Data
 @TableName("sys_role_type_menu")

@@ -12,7 +12,7 @@ import lombok.Data;
  * 
  * @author zhangyanbin
  * @email zhangyanbin@cmii.chinamobile.com
- * @date 2020-05-18 10:23:59
+ * @date 2020-05-19 13:38:34
  */
 @Data
 @TableName("sys_role")
@@ -48,6 +48,10 @@ public class RoleEntity implements Serializable {
 	 * 角色名称
 	 */
 	private String roleName;
+	/**
+	 * 角色类型id
+	 */
+	private Long roleTypeId;
 	/**
 	 * 角色描述
 	 */

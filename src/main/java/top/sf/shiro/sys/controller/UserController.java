@@ -11,7 +11,7 @@ import top.sf.shiro.sys.entity.UserEntity;
 import top.sf.shiro.sys.service.UserService;
 import top.sf.shiro.common.utils.PageUtils;
 import top.sf.shiro.common.utils.R;
-
+import top.sf.shiro.sys.vo.UserVO;
 
 
 /**
@@ -55,8 +55,9 @@ public class UserController {
      */
     @PostMapping("/save")
     @RequiresPermissions("sys:user:save")
-    public R save(@RequestBody UserEntity user){
-		userService.save(user);
+    public R save(@RequestBody UserVO user){
+
+        userService.saveUser(user);
 
         return R.ok();
     }

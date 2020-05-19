@@ -1,5 +1,6 @@
 package top.sf.shiro.config;
 
+import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.mgt.*;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
@@ -7,10 +8,13 @@ import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.spring.web.config.DefaultShiroFilterChainDefinition;
 import org.apache.shiro.spring.web.config.ShiroFilterChainDefinition;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import top.sf.shiro.common.authentication.JwtFilter;
-import top.sf.shiro.common.authentication.ShiroRealm;
+import top.sf.shiro.common.authentication.JwtRealm;
+import top.sf.shiro.common.authentication.LoginRealm;
+import top.sf.shiro.common.properties.AuthProperties;
 
 /**
  * @Description
@@ -21,11 +25,30 @@ import top.sf.shiro.common.authentication.ShiroRealm;
 @Configuration
 public class ShiroConfig {
 
+    @Autowired
+    private AuthProperties authProperties;
+
+    @Bean
+    public HashedCredentialsMatcher hashedCredentialsMatcher() {
+        HashedCredentialsMatcher hashedCredentialsMatcher = new HashedCredentialsMatcher();
+        hashedCredentialsMatcher.setHashAlgorithmName(authProperties.getEncrypt().getAlgorithmName());//散列算法:MD2、MD5、SHA-1、SHA-256、SHA-384、SHA-512等。
+        hashedCredentialsMatcher.setHashIterations(authProperties.getEncrypt().getTimes());//散列的次数，默认1次， 设置两次相当于 md5(md5(""));
+        return hashedCredentialsMatcher;
+    }
+
     // 将自己的验证方式加入容器
     @Bean
-    public ShiroRealm myShiroRealm() {
-        ShiroRealm shiroRealm = new ShiroRealm();
-        return shiroRealm;
+    public JwtRealm jwtRealm() {
+        JwtRealm jwtRealm = new JwtRealm();
+
+        return jwtRealm;
+    }
+
+    @Bean
+    public LoginRealm loginRealm(){
+        LoginRealm loginRealm = new LoginRealm();
+        loginRealm.setCredentialsMatcher(hashedCredentialsMatcher());
+        return loginRealm;
     }
 
     // 禁用本地session
@@ -40,7 +63,7 @@ public class ShiroConfig {
     @Bean
     public SessionsSecurityManager securityManager() {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-        securityManager.setRealm(myShiroRealm());
+        securityManager.setRealm(jwtRealm());
         // 3.关闭shiro自带的session
         DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
         subjectDAO.setSessionStorageEvaluator(sessionStorageEvaluator());
@@ -60,7 +83,7 @@ public class ShiroConfig {
         chainDefinition.addPathDefinition("/swagger-resources/**","anon");
         chainDefinition.addPathDefinition("/v2/**","anon");
 
-        chainDefinition.addPathDefinition("/sys/menu/**","anon");
+//        chainDefinition.addPathDefinition("/sys/menu/**","anon");
         // these paths managed via annotations
         chainDefinition.addPathDefinition("/druid/**", "anon");
         chainDefinition.addPathDefinition("/api/**", "anon");

@@ -3,7 +3,6 @@ package top.sf.shiro.common.authentication;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.apache.shiro.web.util.WebUtils;
 import org.springframework.http.HttpStatus;
@@ -23,6 +22,28 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
         return new JwtToken(authzHeader);
     }
 
+    /**
+     * 执行登录认证(判断请求头是否带上token)
+     * @param request
+     * @param response
+     * @param mappedValue
+     * @return
+     */
+    @Override
+    protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+        log.info("JwtFilter-->>>isAccessAllowed-Method:init()");
+        //如果请求头不存在token,则可能是执行登陆操作或是游客状态访问,直接返回true
+        if (isLoginAttempt(request, response)) {
+            return true;
+        }
+        //如果存在,则进入executeLogin方法执行登入,检查token 是否正确
+        try {
+            executeLogin(request, response);return true;
+        } catch (Exception e) {
+            throw new AuthenticationException("Token失效请重新登录");
+        }
+    }
+
     @Override
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
         HttpServletResponse httpResponse = WebUtils.toHttp(response);
@@ -35,29 +56,4 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
     }
 
 
-    /**
-     * Shiro 利用 JWT token 登录成功，会进入该方法
-     */
-    @Override
-    protected boolean onLoginSuccess(AuthenticationToken token, Subject subject, ServletRequest request,
-                                     ServletResponse response) throws Exception {
-        HttpServletResponse httpResponse = WebUtils.toHttp(response);
-        String newToken = null;
-        if (token instanceof JwtToken) {
-            newToken = JwtUtil.refreshTokenExpired(token.getCredentials().toString(), JwtUtil.AUTHORIZATION_HEADER);
-        }
-        if (newToken != null)
-            httpResponse.setHeader(JwtUtil.AUTHORIZATION_HEADER, newToken);
-        return true;
-    }
-
-    /**
-     * Shiro 利用 JWT token 登录失败，会进入该方法
-     */
-    @Override
-    protected boolean onLoginFailure(AuthenticationToken token, AuthenticationException e, ServletRequest request,
-                                     ServletResponse response) {
-        // 此处直接返回 false ，交给后面的  onAccessDenied()方法进行处理
-        return false;
-    }
 }
