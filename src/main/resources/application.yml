@@ -12,10 +12,9 @@ mybatis-plus:
       logic-delete-value: 0
       logic-not-delete-value: 1
 
-cmii:
-  auth:
-    token:
-      expireTime: 60
-    encrypt:
-      times: 12
-      algorithmName: "MD5"
+cmii.auth:
+  token:
+    expireTime: 60
+  encrypt:
+    times: 12
+    algorithmName: "MD5"

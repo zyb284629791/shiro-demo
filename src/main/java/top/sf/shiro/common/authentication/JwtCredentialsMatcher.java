@@ -8,8 +8,8 @@ public class JwtCredentialsMatcher implements CredentialsMatcher {
 
     @Override
     public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
-        JwtToken jwtToken = (JwtToken) token;
-
-        return false;
+        String jwtToken = token.getPrincipal().toString();
+        String username = JwtUtil.getUsername(jwtToken);
+        return JwtUtil.verify(jwtToken,username,info.getCredentials().toString());
     }
 }

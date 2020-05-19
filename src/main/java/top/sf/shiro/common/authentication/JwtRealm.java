@@ -49,9 +49,7 @@ public class JwtRealm extends AuthorizingRealm {
         // 获取用户信息
         String token = authenticationToken.getPrincipal().toString();
         String username = JwtUtil.getUsername(token);
-        QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq("login_name", username);
-        UserEntity user = userService.getOne(wrapper);
+        UserEntity user = userService.findByLoginName(username);
         if (user == null) {
             throw new AuthenticationException("User didn't existed!");
         } else {
@@ -59,7 +57,7 @@ public class JwtRealm extends AuthorizingRealm {
                 throw new AuthenticationException("Username or password error");
             }
             // 这里验证authenticationToken和simpleAuthenticationInfo的信息
-            SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(username,
+            SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(token,
                     user.getPassword(), ByteSource.Util.bytes(user.getSalt()), getName());
             return simpleAuthenticationInfo;
         }

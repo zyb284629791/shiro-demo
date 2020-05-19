@@ -1,6 +1,8 @@
 package top.sf.shiro.config;
 
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
+import org.apache.shiro.authc.pam.AuthenticationStrategy;
+import org.apache.shiro.authc.pam.FirstSuccessfulStrategy;
 import org.apache.shiro.mgt.*;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
@@ -9,12 +11,17 @@ import org.apache.shiro.spring.web.config.DefaultShiroFilterChainDefinition;
 import org.apache.shiro.spring.web.config.ShiroFilterChainDefinition;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import top.sf.shiro.common.authentication.JwtCredentialsMatcher;
 import top.sf.shiro.common.authentication.JwtFilter;
 import top.sf.shiro.common.authentication.JwtRealm;
 import top.sf.shiro.common.authentication.LoginRealm;
 import top.sf.shiro.common.properties.AuthProperties;
+
+import java.util.Arrays;
 
 /**
  * @Description
@@ -25,14 +32,15 @@ import top.sf.shiro.common.properties.AuthProperties;
 @Configuration
 public class ShiroConfig {
 
+    @Lazy// 不加lazy会导致注入为null，详细还没来得及差原因
     @Autowired
     private AuthProperties authProperties;
 
     @Bean
     public HashedCredentialsMatcher hashedCredentialsMatcher() {
         HashedCredentialsMatcher hashedCredentialsMatcher = new HashedCredentialsMatcher();
-        hashedCredentialsMatcher.setHashAlgorithmName(authProperties.getEncrypt().getAlgorithmName());//散列算法:MD2、MD5、SHA-1、SHA-256、SHA-384、SHA-512等。
-        hashedCredentialsMatcher.setHashIterations(authProperties.getEncrypt().getTimes());//散列的次数，默认1次， 设置两次相当于 md5(md5(""));
+        hashedCredentialsMatcher.setHashAlgorithmName(authProperties.getEncrypt().getAlgorithmName());
+        hashedCredentialsMatcher.setHashIterations(authProperties.getEncrypt().getTimes());
         return hashedCredentialsMatcher;
     }
 
@@ -40,7 +48,7 @@ public class ShiroConfig {
     @Bean
     public JwtRealm jwtRealm() {
         JwtRealm jwtRealm = new JwtRealm();
-
+        jwtRealm.setCredentialsMatcher(new JwtCredentialsMatcher());
         return jwtRealm;
     }
 
@@ -63,12 +71,17 @@ public class ShiroConfig {
     @Bean
     public SessionsSecurityManager securityManager() {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-        securityManager.setRealm(jwtRealm());
+        securityManager.setRealms(Arrays.asList(jwtRealm(),loginRealm()));
         // 3.关闭shiro自带的session
         DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
         subjectDAO.setSessionStorageEvaluator(sessionStorageEvaluator());
         securityManager.setSubjectDAO(subjectDAO);
         return securityManager;
+    }
+
+    @Bean
+    public AuthenticationStrategy authenticationStrategy() {
+        return new FirstSuccessfulStrategy();
     }
 
     // 配置url过滤器
@@ -84,6 +97,7 @@ public class ShiroConfig {
         chainDefinition.addPathDefinition("/v2/**","anon");
 
 //        chainDefinition.addPathDefinition("/sys/menu/**","anon");
+        chainDefinition.addPathDefinition("/login","anon");
         // these paths managed via annotations
         chainDefinition.addPathDefinition("/druid/**", "anon");
         chainDefinition.addPathDefinition("/api/**", "anon");

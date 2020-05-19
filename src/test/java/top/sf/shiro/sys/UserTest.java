@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
+import top.sf.shiro.common.properties.AuthProperties;
 import top.sf.shiro.sys.entity.UserEntity;
 import top.sf.shiro.sys.service.UserService;
 import top.sf.shiro.sys.vo.LoginUserVO;
@@ -22,6 +23,17 @@ public class UserTest {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AuthProperties authProperties;
+
+    @Test
+    public void testUpdate(){
+        UserEntity userEntity = userService.findByLoginName("admin");
+        SimpleHash simpleHash = new SimpleHash(authProperties.getEncrypt().getAlgorithmName(), "123456", userEntity.getSalt(), authProperties.getEncrypt().getTimes());
+        userEntity.setPassword(simpleHash.toHex());
+        userService.saveOrUpdate(userEntity);
+    }
 
     @Test
     public void testAdd(){
