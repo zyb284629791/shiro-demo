@@ -6,6 +6,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.impl.PublicClaims;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -45,6 +46,10 @@ public class JwtUtil {
             return true;
         } catch (IllegalArgumentException | JWTVerificationException e) {
             log.info("token is invalid{}", e.getMessage());
+            e.printStackTrace();
+            if (e instanceof TokenExpiredException) {
+                throw e;
+            }
             return false;
         }
     }
@@ -76,6 +81,7 @@ public class JwtUtil {
                     .sign(algorithm);
         } catch (IllegalArgumentException | JWTCreationException e) {
             log.error("jwt sign error：{}", e);
+            e.printStackTrace();
             return null;
         }
     }

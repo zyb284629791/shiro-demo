@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 @Slf4j
@@ -31,29 +32,47 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
      */
     @Override
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
-        log.info("JwtFilter-->>>isAccessAllowed-Method:init()");
-        //如果请求头不存在token,则可能是执行登陆操作或是游客状态访问,直接返回true
+        // 存在token
         if (isLoginAttempt(request, response)) {
-            return true;
+            //如果存在,则进入executeLogin方法执行登入,检查token 是否正确
+            try {
+                executeLogin(request, response);return true;
+            } catch (Exception e) {
+                throw new AuthenticationException("Token失效请重新登录");
+            }
+        } else {
+            // 未携带token直接返回401
+            // 注意这里还没到spring，因此无法通过RestControllerAdvice来处理
+            HttpServletResponse httpResponse = WebUtils.toHttp(response);
+            httpResponse.setCharacterEncoding("UTF-8");
+            httpResponse.setContentType("application/json;charset=UTF-8");
+            httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+            PrintWriter writer = null;
+            try {
+                writer = httpResponse.getWriter();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+                log.error("onLoginFailure : {}",ioException);
+            }
+            writer.write("当前用户未登录,请先登录!");
+            return false;
         }
-        //如果存在,则进入executeLogin方法执行登入,检查token 是否正确
-        try {
-            executeLogin(request, response);return true;
-        } catch (Exception e) {
-            throw new AuthenticationException("Token失效请重新登录");
-        }
+    }
+
+    /**
+     * 覆盖父类的方法，取消对token要求以basic开头的限制
+     * @param request
+     * @param response
+     * @return
+     */
+    @Override
+    protected boolean isLoginAttempt(ServletRequest request, ServletResponse response) {
+        String authzHeader = getAuthzHeader(request);
+        return authzHeader != null ;
     }
 
     @Override
-    protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
-        HttpServletResponse httpResponse = WebUtils.toHttp(response);
-        httpResponse.setCharacterEncoding("UTF-8");
-        httpResponse.setContentType("application/json;charset=UTF-8");
-        httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
-        PrintWriter writer = httpResponse.getWriter();
-        writer.write("{\"errCode\": 401, \"msg\": \"UNAUTHORIZED\"}");
-        return executeLogin(request,response);
+    protected boolean onLoginFailure(AuthenticationToken token, AuthenticationException e, ServletRequest request, ServletResponse response) {
+        return false;
     }
-
-
 }

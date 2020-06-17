@@ -24,5 +24,9 @@ public interface UserService extends IService<UserEntity> {
     void saveUser(UserVO user);
 
     UserEntity findByLoginName(String loginName);
+
+    String exchangeAccessToken(String code);
+
+    UserEntity findByAccessToken(String accessToken);
 }
 

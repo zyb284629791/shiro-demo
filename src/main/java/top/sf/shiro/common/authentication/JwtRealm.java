@@ -1,6 +1,6 @@
 package top.sf.shiro.common.authentication;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -9,13 +9,15 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import top.sf.shiro.sys.entity.UserEntity;
 import top.sf.shiro.sys.service.RoleService;
 import top.sf.shiro.sys.service.UserService;
 
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @Description
@@ -23,13 +25,11 @@ import java.util.Set;
  * @Date: 2020/5/8.16:33
  * @Version：1.0
  */
+@Slf4j
 public class JwtRealm extends AuthorizingRealm {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private RoleService roleService;
 
     @Override
     public boolean supports(AuthenticationToken token) {
@@ -53,12 +53,9 @@ public class JwtRealm extends AuthorizingRealm {
         if (user == null) {
             throw new AuthenticationException("User didn't existed!");
         } else {
-            if (!JwtUtil.verify(token,username,user.getPassword())) {
-                throw new AuthenticationException("Username or password error");
-            }
             // 这里验证authenticationToken和simpleAuthenticationInfo的信息
             SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(token,
-                    user.getPassword(), ByteSource.Util.bytes(user.getSalt()), getName());
+                    user.getSalt(), getName());
             return simpleAuthenticationInfo;
         }
     }
@@ -72,11 +69,14 @@ public class JwtRealm extends AuthorizingRealm {
         String username = JwtUtil.getUsername(principalCollection.toString());
         // 查询用户名称
         Set<String> permissions = userService.getUserPermissions(username);
-
+        Set<String> perms = permissions.stream().filter(perm -> !StringUtils.isEmpty(perm))
+                .map(perm -> perm.split(",")).flatMap(permArray -> Arrays.asList(permArray)
+                        .stream()).collect(Collectors.toSet());
+        log.info("perms : {}", perms);
         // 添加角色和权限
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
         // 添加权限
-        simpleAuthorizationInfo.addStringPermissions(permissions);
+        simpleAuthorizationInfo.addStringPermissions(perms);
         return simpleAuthorizationInfo;
     }
 
